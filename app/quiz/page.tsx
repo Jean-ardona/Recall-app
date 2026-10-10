@@ -2,12 +2,41 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 import { useQuiz } from '@/context/QuizContext';
 import QuestionCard from '@/components/QuestionCard';
 import ProgressBar from '@/components/ProgressBar';
 
 const CARD_H = 'clamp(370px, 56dvh, 450px)';
+
+// Position a card relative to the current index.
+// r = cardIndex - currentIndex
+// r === 0  → active (centre)
+// r  >  0  → upcoming stack (below/behind)
+// r  <  0  → discard pile (left)
+function cardTransform(r: number): { transform: string; zIndex: number; opacity: number; pointerEvents: 'auto' | 'none' } {
+  if (r === 0) {
+    return { transform: 'translate(0,0) scale(1) rotate(0deg)', zIndex: 200, opacity: 1, pointerEvents: 'auto' };
+  }
+  if (r > 0) {
+    // Upcoming — stacked behind, offset down
+    const n = Math.min(r, 3);
+    return {
+      transform: `translateY(${n * 13}px) scale(${1 - n * 0.04}) rotate(${n % 2 ? 1.3 : -1.3}deg)`,
+      zIndex: 100 - r,
+      opacity: r > 3 ? 0 : 1,
+      pointerEvents: 'none',
+    };
+  }
+  // Discard — offset left and rotated
+  const d = Math.min(-r, 3);
+  return {
+    transform: `translate(${-10 * d - 4}px, ${-9 * d}px) rotate(${-2.6 * d}deg) scale(.97)`,
+    zIndex: 50 + r, // lower z than active
+    opacity: -r > 2 ? 0 : 1,
+    pointerEvents: 'none',
+  };
+}
 
 export default function QuizPage() {
   const router = useRouter();
@@ -18,48 +47,60 @@ export default function QuizPage() {
     if (!quizData) router.replace('/');
   }, [quizData, router]);
 
-  const { questions } = quizData ?? { questions: [] };
   if (!quizData) return null;
+  const { questions } = quizData;
+  const total = questions.length;
 
   const selectedAnswer = answers[currentIndex] ?? null;
   const isAnswered     = selectedAnswer !== null;
-  const isLastQuestion = currentIndex === questions.length - 1;
+  const isLastQuestion = currentIndex === total - 1;
+  const canGoPrev      = currentIndex > 0;
+  // Can only go next if current card is answered
+  const canGoNext      = isAnswered;
 
-  function handleAnswer(i: number) { setAnswer(currentIndex, i); }
+  function handleAnswer(i: number) {
+    // Only allow answering the active card, and only once
+    if (answers[currentIndex] !== null) return;
+    setAnswer(currentIndex, i);
+  }
 
-  function handleNext() {
-    if (!isAnswered) return;
+  function goNext() {
+    if (!canGoNext) return;
     if (isLastQuestion) { router.push('/results'); return; }
     setCurrentIndex(c => c + 1);
   }
 
-  // Keyboard: 1-4 to answer, Enter for Next
+  function goPrev() {
+    if (!canGoPrev) return;
+    setCurrentIndex(c => c - 1);
+  }
+
+  // Keyboard shortcuts
   const handleKey = useCallback((e: KeyboardEvent) => {
+    // Don't intercept if focus is on a button (let space/enter work naturally)
+    if ((e.target as HTMLElement).tagName === 'BUTTON') return;
     if (e.key >= '1' && e.key <= '4') {
       const k = Number(e.key) - 1;
       if (!isAnswered && k < questions[currentIndex].options.length) handleAnswer(k);
     }
-    if (e.key === 'Enter' && isAnswered) handleNext();
+    if (e.key === 'Enter' && canGoNext) goNext();
+    if (e.key === 'ArrowRight' && canGoNext && !isLastQuestion) goNext();
+    if (e.key === 'ArrowLeft'  && canGoPrev) goPrev();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentIndex, isAnswered, questions]);
+  }, [currentIndex, isAnswered, canGoNext, canGoPrev, isLastQuestion, questions]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [handleKey]);
 
-  // Stack geometry
-  const total      = questions.length;
-  const upcomingCards = Math.min(total - currentIndex - 1, 3);  // cards ahead
-  const discardCards  = Math.min(currentIndex, 2);               // answered cards
-
   return (
     <main style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '20px 0 32px',
+      padding: '20px 0 28px',
       background: 'var(--bg)',
     }}>
 
@@ -73,72 +114,93 @@ export default function QuizPage() {
 
       <ProgressBar current={currentIndex + 1} total={total} />
 
-      {/* Deck */}
+      {/* Deck — all cards rendered, positioned by CSS transform */}
       <div
         className="deck-wrap"
         style={{
           height: CARD_H,
-          margin: '26px 0 24px 20px',
+          margin: '22px 0 20px 20px',
           position: 'relative',
         }}
       >
-        {/* Discard pile (answered) — left side */}
-        {Array.from({ length: discardCards }).map((_, i) => {
-          const depth = discardCards - i;
+        {questions.map((question, i) => {
+          const r = i - currentIndex;
+          // Only render cards in the visible window to keep DOM small
+          if (r < -2 || r > 3) return null;
+          const { transform, zIndex, opacity, pointerEvents } = cardTransform(r);
+          const isDiscard = r < 0;
+
           return (
             <div
-              key={`discard-${i}`}
-              className="deck-card paper card-cover"
+              key={i}
+              className="deck-card"
               style={{
-                zIndex: 10 + i,
-                transform: `translate(${-10 * depth - 4}px, ${-9 * depth}px) rotate(${-2.6 * depth}deg) scale(.97)`,
-                opacity: depth > 2 ? 0 : 1,
+                transform,
+                zIndex,
+                opacity,
+                pointerEvents,
+                // The CSS transition is on .deck-card in globals.css
               }}
-            />
+            >
+              {isDiscard ? (
+                /* Answered cards in discard pile show as face-down covers */
+                <div className="paper card-cover" style={{ position: 'absolute', inset: 0, borderRadius: 'var(--radius)' }} />
+              ) : (
+                <QuestionCard
+                  question={question}
+                  selectedAnswer={answers[i] ?? null}
+                  onAnswer={handleAnswer}
+                />
+              )}
+            </div>
           );
         })}
-
-        {/* Upcoming cards (face-down stack) */}
-        {Array.from({ length: upcomingCards }).map((_, i) => {
-          const depth = i + 1;
-          return (
-            <div
-              key={`upcoming-${i}`}
-              className="deck-card paper card-cover"
-              style={{
-                zIndex: 100 - depth,
-                transform: `translateY(${depth * 13}px) scale(${1 - depth * 0.04}) rotate(${depth % 2 ? 1.3 : -1.3}deg)`,
-                opacity: depth > 3 ? 0 : 1,
-              }}
-            />
-          );
-        })}
-
-        {/* Current card */}
-        <div className="deck-card" style={{ zIndex: 200 }}>
-          <QuestionCard
-            key={currentIndex}
-            question={questions[currentIndex]}
-            selectedAnswer={selectedAnswer}
-            onAnswer={handleAnswer}
-          />
-        </div>
       </div>
 
-      {/* Next button */}
-      <button
-        type="button"
-        onClick={handleNext}
-        disabled={!isAnswered}
-        className="btn-primary"
-        style={{ width: 'min(88vw, 400px)', marginTop : "30px"}}
-      >
-        {isLastQuestion ? 'See results' : 'Next'}
-        <ChevronRight size={16} />
-      </button>
+      {/* Navigation buttons */}
+      <div style={{
+        width: 'min(88vw, 400px)',
+        display: 'flex',
+        gap: 10,
+        marginTop:30
+      }}>
+        {/* Previous — ghost, only shown after first answer */}
+        <button
+          type="button"
+          onClick={goPrev}
+          disabled={!canGoPrev}
+          className="btn-ghost"
+          style={{
+            width: 48,
+            flexShrink: 0,
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: canGoPrev ? 1 : 0,
+            pointerEvents: canGoPrev ? 'auto' : 'none',
+            transition: 'opacity .2s',
+          }}
+          aria-label="Previous question"
+        >
+          <ChevronLeft size={18} />
+        </button>
+
+        {/* Next / See results — primary */}
+        <button
+          type="button"
+          onClick={goNext}
+          disabled={!canGoNext}
+          className="btn-primary"
+          style={{ flex: 1 }}
+        >
+          {isLastQuestion ? 'See results' : 'Next'}
+          <ChevronRight size={16} />
+        </button>
+      </div>
 
       {!isAnswered && (
-        <p style={{ fontSize: 12.5, color: 'var(--mute)', marginTop: 12 }}>
+        <p style={{ fontSize: 12.5, color: 'var(--mute)', marginTop: 10 }}>
           Choose an answer to continue. Keys 1–4 also work.
         </p>
       )}
