@@ -47,7 +47,7 @@ export default function MistakeReview({ mistakes }: Props) {
       {/* Header row */}
       <div className="flex items-center justify-between">
         <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: 0 }}>
-          {mistakes.length === 0 ? 'Results' : 'Review your mistakes'}
+          Review your mistakes
         </h2>
         {total > 1 && (
           <div className="flex items-center gap-2" style={{ fontSize: 13, color: 'var(--mute)', fontVariantNumeric: 'tabular-nums' }}>
@@ -88,13 +88,14 @@ export default function MistakeReview({ mistakes }: Props) {
       <div
         ref={railRef}
         className="snap-rail"
+        style={{ paddingBottom: 20 }}
       >
         {cards.map((item, i) => (
           <div
             key={i}
             className="snap-item paper"
             style={{
-              height: 'clamp(280px, 40dvh, 340px)',
+              
               padding: 20,
               display: 'flex',
               flexDirection: 'column',

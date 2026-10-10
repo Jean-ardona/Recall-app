@@ -31,6 +31,7 @@ export default function QuestionCountSelector({ wordCount, selected, onChange, d
               disabled={disabled || !isAvailable}
               onClick={() => isAvailable && onChange(count)}
               className={`seg-btn${isActive ? ' active' : ''}`}
+              title={!isAvailable ? 'Add more text to unlock' : undefined}
             >
               {count}
             </button>

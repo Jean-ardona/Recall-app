@@ -63,15 +63,12 @@ export default function QuizPage() {
       background: 'var(--bg)',
     }}>
 
-      {/* Brand + progress */}
-      <header style={{ width: 'min(88vw, 400px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+      {/* Brand */}
+      <header style={{ width: 'min(88vw, 400px)', display: 'flex', alignItems: 'center', marginBottom: 14 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 19, color: 'var(--ink)' }}>
           <BookOpen size={20} color="var(--accent)" />
           Recall
         </div>
-        <span style={{ fontSize: 13, color: 'var(--mute)', fontVariantNumeric: 'tabular-nums' }}>
-          Question {currentIndex + 1} of {total}
-        </span>
       </header>
 
       <ProgressBar current={currentIndex + 1} total={total} />
