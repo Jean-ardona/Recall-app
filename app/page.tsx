@@ -10,9 +10,10 @@ import { countWords, getDefaultCount, type QuestionCount } from '@/lib/schemas';
 import type { Question } from '@/lib/schemas';
 
 // ── File validation limits ────────────────────────────────────────
-const MAX_MB   = 5;
-const MAX_PAGES = 150;
+const MAX_MB    = 5;
+const MAX_PAGES = 30;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
+const GEN_TIMEOUT_MS = 90000; // 90 s client-side timeout
 
 type FileState =
   | { status: 'idle' }
@@ -123,11 +124,27 @@ export default function HomePage() {
     setGenerating(true);
     setGenError(null);
     try {
-      const res = await fetch('/api/generate-quiz', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: activeText, count: questionCount }),
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), GEN_TIMEOUT_MS);
+
+      let res: Response;
+      try {
+        res = await fetch('/api/generate-quiz', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: activeText, count: questionCount }),
+          signal: controller.signal,
+        });
+      } catch (err) {
+        const isTimeout = err instanceof Error && err.name === 'AbortError';
+        setGenError(isTimeout
+          ? 'Generation timed out. Try a shorter document or fewer questions.'
+          : 'Could not reach the server. Please try again.');
+        return;
+      } finally {
+        clearTimeout(timeoutId);
+      }
+
       const data = await res.json();
       if (!res.ok || data.error) {
         setGenError(data.error ?? 'Something went wrong. Please try again.');
@@ -136,7 +153,7 @@ export default function HomePage() {
       setQuizData({ questions: data.questions as Question[], extractedText: activeText, questionCount });
       router.push('/quiz');
     } catch {
-      setGenError('Could not reach the server. Please try again.');
+      setGenError('Something went wrong. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -240,7 +257,7 @@ export default function HomePage() {
                 or click to browse
               </p>
               <p style={{ fontSize: 12, color: 'var(--mute)', margin: '4px 0 0' }}>
-                PDF (text-based, max 150 pages) or .txt · max {MAX_MB} MB
+                PDF (text-based, max {MAX_PAGES} pages) or .txt · max {MAX_MB} MB
               </p>
             </div>
           )}
@@ -364,16 +381,33 @@ export default function HomePage() {
         {/* Generation error */}
         {genError && (
           <div
-            className="flex items-start gap-2"
             style={{
               background: 'var(--badbg)',
               border: '1px solid var(--bad)',
               borderRadius: 10, padding: '10px 14px',
               fontSize: 13.5, color: 'var(--bad)',
+              display: 'flex', flexDirection: 'column', gap: 10,
             }}
           >
-            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
-            {genError}
+            <div className="flex items-start gap-2">
+              <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+              {genError}
+            </div>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              style={{
+                alignSelf: 'flex-start',
+                background: 'none', border: '1px solid var(--bad)',
+                borderRadius: 7, padding: '5px 14px',
+                fontSize: 13, fontWeight: 500,
+                color: 'var(--bad)', cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Try again
+            </button>
           </div>
         )}
 

@@ -17,11 +17,7 @@ export default function MistakeReview({ mistakes }: Props) {
   const railRef = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState(0);
 
-  // Single "all correct" card
-  const cards = mistakes.length === 0
-    ? [null] // null = perfect score card
-    : mistakes;
-
+  const cards = mistakes.length === 0 ? [null] : mistakes;
   const total = cards.length;
 
   function scrollTo(i: number) {
@@ -84,18 +80,18 @@ export default function MistakeReview({ mistakes }: Props) {
         )}
       </div>
 
-      {/* Carousel */}
+      {/* Carousel — extra bottom padding so shadow isn't clipped */}
       <div
         ref={railRef}
         className="snap-rail"
-        style={{ paddingBottom: 20 }}
+        style={{ paddingBottom: 24 }}
       >
         {cards.map((item, i) => (
           <div
             key={i}
             className="snap-item paper"
             style={{
-              
+              height: 'min(60dvh, 480px)',
               padding: 20,
               display: 'flex',
               flexDirection: 'column',
@@ -104,7 +100,6 @@ export default function MistakeReview({ mistakes }: Props) {
             }}
           >
             {item === null ? (
-              /* Perfect score card */
               <div className="flex flex-col items-center justify-center h-full gap-3">
                 <span style={{
                   width: 44, height: 44, borderRadius: '50%',
@@ -121,12 +116,10 @@ export default function MistakeReview({ mistakes }: Props) {
                 </p>
               </div>
             ) : (
-              /* Mistake card */
               <>
                 <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', margin: 0, lineHeight: 1.35 }}>
                   {item.question.question}
                 </p>
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 5, fontSize: 13.5 }}>
                   <div className="flex items-start gap-2">
                     <X size={13} style={{ color: 'var(--bad)', flexShrink: 0, marginTop: 2 }} />
@@ -143,11 +136,9 @@ export default function MistakeReview({ mistakes }: Props) {
                     </span>
                   </div>
                 </div>
-
                 <p style={{ fontSize: 13.5, lineHeight: 1.5, color: 'var(--ink)', margin: 0 }}>
                   {item.question.explanation}
                 </p>
-
                 <blockquote style={{
                   fontSize: 13, lineHeight: 1.5, color: 'var(--mute)',
                   fontStyle: 'italic',
@@ -162,6 +153,29 @@ export default function MistakeReview({ mistakes }: Props) {
           </div>
         ))}
       </div>
+
+      {/* Pagination dots */}
+      {total > 1 && (
+        <div className="flex items-center justify-center gap-2" style={{ marginTop: -12 }}>
+          {Array.from({ length: total }).map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Go to mistake ${i + 1}`}
+              onClick={() => scrollTo(i)}
+              style={{
+                width: i === pos ? 20 : 7,
+                height: 7,
+                borderRadius: 4,
+                border: 'none',
+                background: i === pos ? 'var(--accent)' : 'var(--line)',
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'width .25s cubic-bezier(.2,.8,.2,1), background .2s',
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

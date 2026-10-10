@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { extractPdfText } from '@/lib/extract';
 
 const MAX_MB    = 5;
-const MAX_PAGES = 150;
+const MAX_PAGES = 30;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
 export async function POST(req: NextRequest) {

@@ -78,7 +78,7 @@ export default function ResultsPage() {
           flexDirection: 'column',
           flex: 1,
           gap: 16,
-          /* smooth fade-in when returning from review */
+          justifyContent: 'center',
           opacity: view === 'summary' ? 1 : 0,
           transition: 'opacity .25s ease',
         }}>

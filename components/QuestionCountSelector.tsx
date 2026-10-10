@@ -20,7 +20,7 @@ export default function QuestionCountSelector({ wordCount, selected, onChange, d
         Number of questions
       </label>
 
-      <div className="seg-control">
+      <div className="seg-control" style={{ width: '100%' }}>
         {ALL.map((count) => {
           const isAvailable = available.includes(count);
           const isActive = selected === count && isAvailable;

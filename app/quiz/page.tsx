@@ -122,7 +122,7 @@ export default function QuizPage() {
         className="deck-wrap"
         style={{
           height: CARD_H,
-          margin: '22px 0 20px 20px',
+          margin: '22px 0 20px',
           position: 'relative',
         }}
       >

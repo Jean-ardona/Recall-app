@@ -1,18 +1,9 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { BookOpen } from 'lucide-react';
 
-/**
- * Loading overlay — pure CSS film-strip animation.
- *
- * A row of pages scrolls continuously left. The strip is wider than the
- * viewport clip, so it looks like pages are always flowing left→right.
- * Left side = unread stack, right side = read stack.
- * No JS, no state, no re-renders — guaranteed smooth.
- */
-
-// One page tile in the strip
-function Page({ rotate = 0, opacity = 1 }: { rotate?: number; opacity?: number }) {
+function Page({ rotate = 0 }: { rotate?: number }) {
   return (
     <div style={{
       flexShrink: 0,
@@ -23,8 +14,6 @@ function Page({ rotate = 0, opacity = 1 }: { rotate?: number; opacity?: number }
       borderRadius: 9,
       boxShadow: '0 2px 10px rgba(27,35,53,.09), 0 1px 2px rgba(27,35,53,.06)',
       transform: `rotate(${rotate}deg)`,
-      opacity,
-      // Faint ruled lines to suggest a document page
       backgroundImage: `repeating-linear-gradient(
         to bottom,
         transparent 0px,
@@ -37,9 +26,17 @@ function Page({ rotate = 0, opacity = 1 }: { rotate?: number; opacity?: number }
   );
 }
 
-const STRIP_DURATION = '5s'; // one full strip-width scroll
+const STRIP_DURATION = '5s';
 
 export default function GeneratingOverlay({ count }: { count: number }) {
+  const [showHint, setShowHint] = useState(false);
+
+  // After 20 s show the "large documents" hint
+  useEffect(() => {
+    const t = setTimeout(() => setShowHint(true), 20000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <>
       <style>{`
@@ -48,8 +45,12 @@ export default function GeneratingOverlay({ count }: { count: number }) {
           to   { transform: translateX(-50%); }
         }
         @keyframes gen-label-pulse {
-          0%, 100% { opacity: 1;   }
-          50%       { opacity: .4; }
+          0%, 100% { opacity: 1;  }
+          50%       { opacity: .5; }
+        }
+        @keyframes gen-hint-in {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @keyframes gen-spin {
           to { transform: rotate(360deg); }
@@ -84,19 +85,13 @@ export default function GeneratingOverlay({ count }: { count: number }) {
           Recall
         </div>
 
-        {/* Film strip viewport — clips the scrolling strip */}
+        {/* Film strip */}
         <div style={{
           width: 'min(88vw, 380px)',
           overflow: 'hidden',
-          // Fade edges so pages appear/disappear softly
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%)',
           maskImage:        'linear-gradient(to right, transparent 0%, black 18%, black 82%, transparent 100%)',
         }}>
-          {/*
-            The strip is 200% wide (doubled for seamless loop).
-            It scrolls left by 50% (= one copy width) then jumps back.
-            Each copy has 8 pages with slight rotations for a natural feel.
-          */}
           <div
             className="gen-strip"
             style={{
@@ -108,7 +103,6 @@ export default function GeneratingOverlay({ count }: { count: number }) {
               paddingLeft: 20,
             }}
           >
-            {/* Two identical copies for seamless loop */}
             {[0, 1].map(copy => (
               <div key={copy} style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
                 <Page rotate={-2.5} />
@@ -124,17 +118,29 @@ export default function GeneratingOverlay({ count }: { count: number }) {
           </div>
         </div>
 
-        {/* Label */}
-        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {/* Labels */}
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <p style={{
-            fontSize: 17, fontWeight: 600, color: 'var(--ink)', margin: 0,
+            fontSize: 17, fontWeight: 600,
+            color: 'var(--ink)',   /* full ink — high contrast */
+            margin: 0,
             animation: 'gen-label-pulse 2.4s ease-in-out infinite',
           }}>
             Reading your document…
           </p>
-          <p style={{ fontSize: 13, color: 'var(--mute)', margin: 0 }}>
+          <p style={{ fontSize: 13.5, color: 'var(--mute)', margin: 0 }}>
             The AI is building {count} questions for you.
           </p>
+          {showHint && (
+            <p style={{
+              fontSize: 12.5,
+              color: 'var(--mute)',
+              margin: 0,
+              animation: 'gen-hint-in .4s ease forwards',
+            }}>
+              Large documents can take up to a minute.
+            </p>
+          )}
         </div>
       </div>
     </>
