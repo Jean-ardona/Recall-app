@@ -7,15 +7,16 @@ interface Props {
   question: Question;
   selectedAnswer: number | null;
   onAnswer: (index: number) => void;
+  justAnswered?: boolean; // true only on the card that was just answered — drives the lift animation
 }
 
-export default function QuestionCard({ question, selectedAnswer, onAnswer }: Props) {
+export default function QuestionCard({ question, selectedAnswer, onAnswer, justAnswered = false }: Props) {
   const isAnswered = selectedAnswer !== null;
   const isCorrect = isAnswered && selectedAnswer === question.correctIndex;
 
   return (
     <div
-      className={`flip-scene${isAnswered && isCorrect ? ' card-lift' : ''}`}
+      className={`flip-scene${justAnswered && isCorrect ? ' card-lift' : ''}`}
       style={{ height: 'clamp(370px, 56dvh, 450px)' }}
     >
       <div className={`flip-inner${isAnswered ? ' flipped' : ''}`}>

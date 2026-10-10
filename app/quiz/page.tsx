@@ -19,7 +19,6 @@ function cardTransform(r: number): { transform: string; zIndex: number; opacity:
     return { transform: 'translate(0,0) scale(1) rotate(0deg)', zIndex: 200, opacity: 1, pointerEvents: 'auto' };
   }
   if (r > 0) {
-    // Upcoming — stacked behind, offset down
     const n = Math.min(r, 3);
     return {
       transform: `translateY(${n * 13}px) scale(${1 - n * 0.04}) rotate(${n % 2 ? 1.3 : -1.3}deg)`,
@@ -28,13 +27,13 @@ function cardTransform(r: number): { transform: string; zIndex: number; opacity:
       pointerEvents: 'none',
     };
   }
-  // Discard — offset left and rotated
+  // r < 0 — discard pile, offset left and rotated
   const d = Math.min(-r, 3);
   return {
     transform: `translate(${-10 * d - 4}px, ${-9 * d}px) rotate(${-2.6 * d}deg) scale(.97)`,
-    zIndex: 50 + r, // lower z than active
+    zIndex: 50 + r,
     opacity: -r > 2 ? 0 : 1,
-    pointerEvents: 'none',
+    pointerEvents: 'auto',
   };
 }
 
@@ -42,6 +41,7 @@ export default function QuizPage() {
   const router = useRouter();
   const { quizData, answers, setAnswer } = useQuiz();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [justAnsweredIndex, setJustAnsweredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!quizData) router.replace('/');
@@ -62,16 +62,19 @@ export default function QuizPage() {
     // Only allow answering the active card, and only once
     if (answers[currentIndex] !== null) return;
     setAnswer(currentIndex, i);
+    setJustAnsweredIndex(currentIndex);
   }
 
   function goNext() {
     if (!canGoNext) return;
+    setJustAnsweredIndex(null); // clear lift on navigation
     if (isLastQuestion) { router.push('/results'); return; }
     setCurrentIndex(c => c + 1);
   }
 
   function goPrev() {
     if (!canGoPrev) return;
+    setJustAnsweredIndex(null); // clear lift on navigation
     setCurrentIndex(c => c - 1);
   }
 
@@ -143,13 +146,25 @@ export default function QuizPage() {
               }}
             >
               {isDiscard ? (
-                /* Answered cards in discard pile show as face-down covers */
-                <div className="paper card-cover" style={{ position: 'absolute', inset: 0, borderRadius: 'var(--radius)' }} />
+                /* Answered cards in discard pile — show full card with locked answer */
+                <div
+                  onClick={() => setCurrentIndex(i)}
+                  style={{ position: 'absolute', inset: 0, cursor: 'pointer' }}
+                  title="Click to review this answer"
+                >
+                  <QuestionCard
+                    question={question}
+                    selectedAnswer={answers[i] ?? null}
+                    onAnswer={() => {/* locked */}}
+                    justAnswered={false}
+                  />
+                </div>
               ) : (
                 <QuestionCard
                   question={question}
                   selectedAnswer={answers[i] ?? null}
                   onAnswer={handleAnswer}
+                  justAnswered={justAnsweredIndex === i}
                 />
               )}
             </div>
