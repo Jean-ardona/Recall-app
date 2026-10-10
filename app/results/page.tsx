@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { RotateCcw, RefreshCw, Home } from 'lucide-react';
+import { RotateCcw, RefreshCw, Home, BookOpen } from 'lucide-react';
 import { useQuiz } from '@/context/QuizContext';
 import ScoreDisplay from '@/components/ScoreDisplay';
 import MistakeReview from '@/components/MistakeReview';
@@ -13,9 +13,7 @@ export default function ResultsPage() {
   const { quizData, answers, resetAnswers, setQuizData, clearAll } = useQuiz();
 
   useEffect(() => {
-    if (!quizData) {
-      router.replace('/');
-    }
+    if (!quizData) router.replace('/');
   }, [quizData, router]);
 
   if (!quizData) return null;
@@ -28,16 +26,11 @@ export default function ResultsPage() {
     return null;
   }
 
-  const correctCount = questions.filter(
-    (q: Question, i: number) => answers[i] === q.correctIndex
-  ).length;
-
   const mistakes = questions
-    .map((q: Question, i: number) => ({
-      question: q,
-      userAnswerIndex: answers[i] as number,
-    }))
-    .filter((item) => item.userAnswerIndex !== item.question.correctIndex);
+    .map((q: Question, i: number) => ({ question: q, userAnswerIndex: answers[i] as number }))
+    .filter(item => item.userAnswerIndex !== item.question.correctIndex);
+
+  const correctCount = questions.length - mistakes.length;
 
   async function handleNewQuiz() {
     try {
@@ -59,18 +52,36 @@ export default function ResultsPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-10">
-      <div className="w-full max-w-2xl flex flex-col gap-8">
+    <main style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      padding: '20px 0 40px',
+      background: 'var(--bg)',
+    }}>
+      {/* Brand */}
+      <header style={{ width: 'min(88vw, 400px)', marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 19, color: 'var(--ink)' }}>
+          <BookOpen size={20} color="var(--accent)" />
+          Recall
+        </div>
+      </header>
+
+      <div style={{ width: 'min(88vw, 400px)', display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+        {/* Score ring */}
         <ScoreDisplay correct={correctCount} total={questions.length} />
 
+        {/* Mistakes carousel */}
         <MistakeReview mistakes={mistakes} />
 
         {/* Actions */}
-        <div className="flex flex-col gap-3 pt-4">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <button
             type="button"
             onClick={() => { resetAnswers(); router.push('/quiz'); }}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#DDD] bg-white text-sm font-medium text-[#111] hover:border-slate-400 transition-colors"
+            className="btn-ghost"
           >
             <RotateCcw size={15} />
             Retake quiz
@@ -78,7 +89,7 @@ export default function ResultsPage() {
           <button
             type="button"
             onClick={handleNewQuiz}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-[#DDD] bg-white text-sm font-medium text-[#111] hover:border-slate-400 transition-colors"
+            className="btn-ghost"
           >
             <RefreshCw size={15} />
             New quiz from this document
@@ -86,12 +97,13 @@ export default function ResultsPage() {
           <button
             type="button"
             onClick={() => { clearAll(); router.push('/'); }}
-            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-slate-800 text-white text-sm font-semibold hover:bg-slate-700 transition-colors"
+            className="btn-primary"
           >
             <Home size={15} />
             Start over
           </button>
         </div>
+
       </div>
     </main>
   );

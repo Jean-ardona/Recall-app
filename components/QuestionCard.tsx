@@ -11,66 +11,118 @@ interface Props {
 
 export default function QuestionCard({ question, selectedAnswer, onAnswer }: Props) {
   const isAnswered = selectedAnswer !== null;
+  const isCorrect = isAnswered && selectedAnswer === question.correctIndex;
 
   return (
-    <div className="w-full max-w-2xl mx-auto bg-white border border-[#E8E8E8] rounded-xl p-8 shadow-sm">
-      <p className="text-lg font-semibold text-[#111] mb-6 leading-snug">
-        {question.question}
-      </p>
+    <div
+      className={`flip-scene${isAnswered && isCorrect ? ' card-lift' : ''}`}
+      style={{ height: 'clamp(370px, 56dvh, 450px)' }}
+    >
+      <div className={`flip-inner${isAnswered ? ' flipped' : ''}`}>
 
-      <div className="flex flex-col gap-3 mb-6">
-        {question.options.map((option, i) => {
-          const isCorrect = i === question.correctIndex;
-          const isChosen = selectedAnswer === i;
-          const isFaded = isAnswered && !isCorrect && !isChosen;
+        {/* ── FRONT ── */}
+        <div className="flip-face paper" style={{ padding: '24px 22px', display: 'flex', flexDirection: 'column' }}>
+          <p
+            className="font-semibold leading-snug"
+            style={{ fontSize: 19, color: 'var(--ink)', margin: '0 0 20px', letterSpacing: '-.01em' }}
+          >
+            {question.question}
+          </p>
 
-          let stateClasses = 'border-[#DDD] bg-white hover:border-slate-400 cursor-pointer';
-          if (isAnswered) {
-            if (isCorrect) {
-              stateClasses = 'border-green-500 bg-green-50 cursor-default';
-            } else if (isChosen) {
-              stateClasses = 'border-red-500 bg-red-50 cursor-default';
-            } else {
-              stateClasses = 'border-[#E8E8E8] bg-white opacity-40 cursor-default';
-            }
-          }
+          <div className="flex flex-col" style={{ gap: 9, marginTop: 'auto' }}>
+            {question.options.map((option, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => !isAnswered && onAnswer(i)}
+                disabled={isAnswered}
+                aria-label={`Option ${i + 1}: ${option}`}
+                style={{
+                  fontFamily: 'inherit',
+                  fontSize: 14.5,
+                  textAlign: 'left',
+                  color: 'var(--ink)',
+                  background: selectedAnswer === i ? 'color-mix(in srgb, var(--accent) 10%, transparent)' : 'transparent',
+                  border: `1px solid ${selectedAnswer === i ? 'var(--accent)' : 'var(--line)'}`,
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  cursor: isAnswered ? 'default' : 'pointer',
+                  transition: 'border-color .2s, background .2s',
+                }}
+                className="focus-visible:outline-[2px] focus-visible:outline-[var(--accent)]"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
 
-          return (
-            <button
-              key={i}
-              type="button"
-              disabled={isAnswered}
-              onClick={() => !isAnswered && onAnswer(i)}
-              className={`
-                flex items-center justify-between w-full px-4 py-3 rounded-lg border text-left
-                transition-colors text-sm font-medium
-                ${stateClasses}
-                ${isFaded ? 'opacity-40' : ''}
-              `}
+        {/* ── BACK ── */}
+        <div
+          className={`flip-face flip-back paper`}
+          style={{
+            padding: '24px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            background: isCorrect ? 'var(--okbg)' : 'var(--badbg)',
+          }}
+        >
+          {/* Verdict */}
+          <div className="flex items-center gap-3" style={{ marginBottom: 14 }}>
+            <span
+              style={{
+                width: 30, height: 30, borderRadius: '50%',
+                display: 'grid', placeItems: 'center',
+                background: isCorrect ? 'var(--okbg)' : 'var(--badbg)',
+                color: isCorrect ? 'var(--ok)' : 'var(--bad)',
+                border: `1px solid ${isCorrect ? 'var(--ok)' : 'var(--bad)'}`,
+                flexShrink: 0,
+              }}
             >
-              <span className="text-[#111]">{option}</span>
-              {isAnswered && isCorrect && (
-                <Check size={16} className="text-green-600 flex-shrink-0 ml-2" />
-              )}
-              {isAnswered && isChosen && !isCorrect && (
-                <X size={16} className="text-red-600 flex-shrink-0 ml-2" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+              {isCorrect
+                ? <Check size={15} strokeWidth={2.6} />
+                : <X size={15} strokeWidth={2.6} />}
+            </span>
+            <span
+              className="font-semibold"
+              style={{ fontSize: 16, color: isCorrect ? 'var(--ok)' : 'var(--bad)' }}
+            >
+              {isCorrect ? 'Correct' : 'Not quite'}
+            </span>
+          </div>
 
-      {isAnswered && (
-        <div className="border-t border-[#F0F0F0] pt-5 space-y-3">
-          <p className="text-sm text-[#333] leading-relaxed">
-            <span className="font-semibold">Explanation: </span>
+          {/* Your answer / Correct answer */}
+          {!isCorrect && isAnswered && (
+            <p className="flex gap-2" style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 6px', color: 'var(--ink)' }}>
+              <X size={14} style={{ color: 'var(--bad)', flexShrink: 0, marginTop: 2 }} />
+              <span><strong style={{ color: 'var(--bad)' }}>Your answer:</strong> {question.options[selectedAnswer!]}</span>
+            </p>
+          )}
+          <p className="flex gap-2" style={{ fontSize: 13.5, lineHeight: 1.4, margin: '0 0 10px', color: 'var(--ink)' }}>
+            <Check size={14} style={{ color: 'var(--ok)', flexShrink: 0, marginTop: 2 }} />
+            <span><strong style={{ color: 'var(--ok)' }}>Correct answer:</strong> {question.options[question.correctIndex]}</span>
+          </p>
+
+          {/* Explanation */}
+          <p style={{ fontSize: 14, lineHeight: 1.5, margin: '0 0 12px', color: 'var(--ink)' }}>
             {question.explanation}
           </p>
-          <blockquote className="border-l-2 border-slate-300 pl-3 text-sm text-[#666] italic leading-relaxed">
+
+          {/* Source excerpt */}
+          <blockquote
+            style={{
+              fontSize: 13, lineHeight: 1.5, color: 'var(--mute)',
+              fontStyle: 'italic',
+              borderLeft: '2px solid var(--line)',
+              padding: '2px 0 2px 12px',
+              margin: 'auto 0 0',
+            }}
+          >
             {question.excerpt}
           </blockquote>
         </div>
-      )}
+
+      </div>
     </div>
   );
 }

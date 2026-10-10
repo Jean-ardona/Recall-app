@@ -4,8 +4,8 @@ export const QuestionSchema = z.object({
   question: z.string().min(1),
   options: z.array(z.string()).length(4),
   correctIndex: z.number().int().min(0).max(3),
-  explanation: z.string().min(1),
-  excerpt: z.string().min(1),
+  explanation: z.string().min(1).max(400), // max ~2 sentences so card back never overflows
+  excerpt: z.string().min(1).max(200),     // max ~25 words verbatim from source
 });
 
 export const QuizSchema = z.object({

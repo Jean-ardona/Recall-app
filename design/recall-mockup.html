@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recall - card stack mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#e8ebf0;--paper:#fffffe;--ink:#1b2335;--mute:#667085;--line:#dfe3ea;--accent:#26407a;--ok:#1b7a4b;--okbg:#e8f5ee;--bad:#b23a33;--badbg:#fbeceb;--shadow:0 1px 1px rgba(27,35,53,.07),0 10px 26px rgba(27,35,53,.10);
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#11141b;--paper:#1c2130;--ink:#e8e9ee;--mute:#9aa2b4;--line:#2b3246;--accent:#8fb0ee;--ok:#5fc68c;--okbg:#16291f;--bad:#f08178;--badbg:#2d1b1a;--shadow:0 1px 1px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.5)}}
+:root[data-theme="dark"]{--bg:#11141b;--paper:#1c2130;--ink:#e8e9ee;--mute:#9aa2b4;--line:#2b3246;--accent:#8fb0ee;--ok:#5fc68c;--okbg:#16291f;--bad:#f08178;--badbg:#2d1b1a;--shadow:0 1px 1px rgba(0,0,0,.4),0 12px 30px rgba(0,0,0,.5)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.app{min-height:100%;display:flex;flex-direction:column;align-items:center;padding:20px 0 24px}
+header{width:min(88vw,400px);display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:19px;letter-spacing:-.01em}
+.brand svg{width:20px;height:20px;color:var(--accent)}
+.count{font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.bar{width:min(88vw,400px);height:3px;background:var(--line);border-radius:3px;margin-bottom:26px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+svg{display:block}
+.ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* deck */
+.deck{position:relative;width:min(80vw,380px);height:clamp(370px,56dvh,450px);margin:0 0 30px 20px}
+.card{position:absolute;inset:0;perspective:1200px;transition:transform .65s cubic-bezier(.2,.8,.2,1),opacity .4s,z-index 0s linear .3s;transform-origin:50% 90%}
+.card.pop{animation:lift .5s ease .55s}
+@keyframes lift{50%{translate:0 -9px}}
+.inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.card.flipped .inner{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:24px 22px;display:flex;flex-direction:column;overflow:hidden}
+.back{transform:rotateY(180deg)}
+.q{font-size:19px;line-height:1.35;font-weight:600;letter-spacing:-.01em;margin:0 0 20px}
+.opts{display:flex;flex-direction:column;gap:9px;margin-top:auto}
+.opt{font:inherit;font-size:14.5px;text-align:left;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .2s,background .2s,transform .15s}
+.opt:hover{border-color:var(--accent)}
+.opt:active{transform:scale(.99)}
+.opt.picked{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.opt:focus-visible,.btn:focus-visible,.nav:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cover{position:absolute;inset:0;border-radius:14px;background:var(--paper);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .45s .15s;pointer-events:none}
+.cover::before{content:"";position:absolute;inset:0;border-radius:14px;background:repeating-linear-gradient(135deg,transparent 0 7px,var(--line) 7px 8px)}
+.cover::after{content:"";position:absolute;inset:10px;border:1px solid var(--accent);opacity:.35;border-radius:8px}
+.cover svg{position:relative;width:34px;height:34px;color:var(--accent);opacity:.55;stroke-width:1.5}
+.down .cover{opacity:1}
+.verdict{display:flex;align-items:center;gap:10px;font-weight:600;font-size:16px;margin-bottom:14px}
+.badge{width:30px;height:30px;border-radius:50%;display:grid;place-items:center}
+.badge svg{width:17px;height:17px;stroke-width:2.6}
+.ok .badge{background:var(--okbg);color:var(--ok)}.ok .verdict{color:var(--ok)}
+.no .badge{background:var(--badbg);color:var(--bad)}.no .verdict{color:var(--bad)}
+.draw{stroke-dasharray:26;stroke-dashoffset:26}
+.flipped .draw{animation:draw .5s ease .5s forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ans{font-size:13.5px;line-height:1.4;margin:0 0 7px;display:flex;gap:6px}
+.ans b{font-weight:600;white-space:nowrap}
+.ans.y b,.ans.y span{color:var(--bad)}.ans.c b,.ans.c span{color:var(--ok)}
+.exp{font-size:14px;line-height:1.5;margin:10px 0 12px}
+.quote{font-size:13px;line-height:1.5;color:var(--mute);font-style:italic;border-left:2px solid var(--line);padding:2px 0 2px 12px;margin:auto 0 0}
+.btn{font:inherit;font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:0;border-radius:10px;padding:13px 26px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:opacity .2s,transform .15s}
+:root[data-theme="dark"] .btn,.btn.on-dark{color:#0f1420}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0f1420}}
+.btn:disabled{opacity:.35;cursor:default}
+.btn:not(:disabled):active{transform:scale(.98)}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+:root[data-theme="dark"] .ghost{color:var(--ink)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ghost{color:var(--ink)}}
+.hint{font-size:12.5px;color:var(--mute);margin-top:12px;min-height:16px}
+/* results */
+#results{display:none;flex-direction:column;align-items:center;width:min(88vw,400px)}
+.ring{position:relative;width:132px;height:132px;margin:6px 0 14px}
+.ring svg{width:132px;height:132px;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:8;stroke-linecap:round}
+.ring .t{stroke:var(--line)}.ring .p{stroke:var(--accent);stroke-dasharray:339.3;stroke-dashoffset:339.3}
+.score{position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-weight:700;font-size:30px;font-variant-numeric:tabular-nums}
+.score small{display:block;font-size:13px;font-weight:500;color:var(--mute)}
+.msg{color:var(--mute);font-size:14.5px;margin:0 0 24px;text-align:center}
+.rhead{width:100%;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.rhead h2{font-size:15px;margin:0;font-weight:600}
+.navs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
+.nav{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.nav:disabled{opacity:.3;cursor:default}
+.rail{width:100%;display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:4px 2px 18px}
+.rail::-webkit-scrollbar{display:none}
+.mcard{flex:0 0 100%;scroll-snap-align:center;height:clamp(300px,42dvh,360px);overflow:auto;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:20px;display:flex;flex-direction:column}
+.mcard .q{font-size:16px;margin-bottom:14px}
+.acts{display:flex;gap:10px;margin-top:6px}
+.note{position:fixed;right:12px;bottom:calc(8px + env(safe-area-inset-bottom,0px));font-size:11.5px;color:var(--mute)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important;animation-delay:0s!important;transition-delay:0s!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand"><svg class="ic" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>Recall</div>
+    <div class="count" id="count">Question 1 of 5</div>
+  </header>
+  <div class="bar" id="barwrap"><i id="bar"></i></div>
+
+  <main id="quiz" style="display:flex;flex-direction:column;align-items:center">
+    <div class="deck" id="deck"></div>
+    <button class="btn" id="next" disabled>Next<svg class="ic" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+    <div class="hint" id="hint">Choose an answer to turn the card over.</div>
+  </main>
+
+  <section id="results">
+    <div class="ring"><svg viewBox="0 0 120 120"><circle class="t" cx="60" cy="60" r="54"/><circle class="p" id="arc" cx="60" cy="60" r="54"/></svg><div class="score"><span id="num">0/5</span><small id="pct">0%</small></div></div>
+    <p class="msg" id="msg"></p>
+    <div class="rhead"><h2>Review your mistakes</h2>
+      <div class="navs"><button class="nav" id="prev" aria-label="Previous"><svg class="ic" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span id="pos">1 / 1</span><button class="nav" id="fwd" aria-label="Next"><svg class="ic" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button></div></div>
+    <div class="rail" id="rail"></div>
+    <div class="acts"><button class="btn" id="retake"><svg class="ic" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>Retake quiz</button></div>
+  </section>
+</div>
+<div class="note">Mockup with sample data</div>
+
+<script>
+const DATA=[
+{q:"What was the name of the early network that preceded the modern internet?",o:["DARPANET","ARPANET","MILNET","USENET"],a:1,e:"ARPANET, funded by the US Department of Defense in the late 1960s, was the direct predecessor of the modern internet.",x:"The internet has its origins in ARPANET, a project funded by the United States Department of Defense in the late 1960s."},
+{q:"What was significant about the first message ever sent over ARPANET?",o:["It was a classified military transmission","The system crashed before the full word could be transmitted","It was a greeting between two researchers","It was a weather report"],a:1,e:"The first message was meant to be \"login\", but the system crashed after only \"lo\" was sent.",x:"The first message ever sent over ARPANET was \"lo\" - the system crashed before the full word \"login\" could be transmitted."},
+{q:"What event is often referred to as the birth of the internet?",o:["The release of Mosaic in 1993","ARPANET adopting TCP/IP in 1983","The launch of the first website","The creation of email"],a:1,e:"Adopting TCP/IP in 1983 set the communication protocols that still underlie the modern internet.",x:"In 1983, ARPANET adopted TCP/IP, the set of communication protocols that still underlies the modern internet."},
+{q:"What role did Berners-Lee's decision about web technology play in its adoption?",o:["It slowed adoption by requiring licensing fees","It enabled rapid worldwide adoption by making it freely available","It limited use to universities","It had no effect on adoption"],a:1,e:"By not patenting the web, Berners-Lee removed barriers to adoption and helped it spread worldwide.",x:"Berners-Lee made the web technology freely available, which was a key decision in enabling its rapid worldwide adoption."},
+{q:"Where did Tim Berners-Lee propose the World Wide Web?",o:["MIT","CERN","Stanford","Bell Labs"],a:1,e:"He proposed the web while working at CERN, the European physics laboratory.",x:"Berners-Lee proposed the World Wide Web in 1989 while working at CERN."}];
+const ICON={ok:'<svg class="ic" viewBox="0 0 24 24"><path class="draw" d="M5 12.5l4.5 4.5L19 7.5"/></svg>',no:'<svg class="ic" viewBox="0 0 24 24"><path class="draw" d="M6 6l12 12M18 6L6 18"/></svg>',okS:'<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',noS:'<svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M6 6l12 12M18 6L6 18"/></svg>'};
+const $=id=>document.getElementById(id);
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+let idx,picks,cards,locked;
+
+function answerBlock(d,pick){
+  const wrong=pick!==d.a;
+  return (wrong?`<p class="ans y">${ICON.noS}<span><b>Your answer:</b> ${d.o[pick]}</span></p>`:"")+
+  `<p class="ans c">${ICON.okS}<span><b>Correct answer:</b> ${d.o[d.a]}</span></p>`;
+}
+function build(){
+  idx=0;picks=[];locked=false;
+  $("deck").innerHTML="";
+  cards=DATA.map((d,i)=>{
+    const c=document.createElement("div");c.className="card";
+    c.innerHTML=`<div class="inner"><div class="face front"><h1 class="q">${d.q}</h1><div class="opts">${d.o.map((t,k)=>`<button class="opt" data-k="${k}">${t}</button>`).join("")}</div><div class="cover"><svg class="ic" viewBox="0 0 24 24"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg></div></div><div class="face back"></div></div>`;
+    c.querySelectorAll(".opt").forEach(b=>b.onclick=()=>pick(i,+b.dataset.k));
+    $("deck").appendChild(c);return c;});
+  layout();
+}
+function layout(){
+  cards.forEach((c,i)=>{
+    const r=i-idx;let t,z,o=1;
+    if(r===0){t="translate(0,0)";z=200}
+    else if(r>0){o=r>3?0:1;const n=Math.min(r,3);t=`translateY(${n*13}px) scale(${1-n*.04}) rotate(${n%2?1.3:-1.3}deg)`;z=100-r}
+    else{const d=-r;o=d>2?0:1;t=`translate(${-10*d-4}px,${-9*d}px) rotate(${-2.6*d}deg) scale(.97)`;z=50-d}
+    c.style.transform=t;c.style.zIndex=z;c.style.opacity=o;c.classList.toggle("down",r>0);
+    c.style.pointerEvents=r===0?"auto":"none";
+  });
+  $("count").textContent=`Question ${Math.min(idx+1,DATA.length)} of ${DATA.length}`;
+  $("bar").style.width=(idx/DATA.length*100)+"%";
+}
+function pick(i,k){
+  if(locked||i!==idx)return;locked=true;
+  const d=DATA[i],c=cards[i],good=k===d.a;picks[i]=k;
+  c.querySelectorAll(".opt")[k].classList.add("picked");
+  c.querySelector(".back").className="face back "+(good?"ok":"no");
+  c.querySelector(".back").innerHTML=`<div class="verdict"><span class="badge">${good?ICON.ok:ICON.no}</span>${good?"Correct":"Not quite"}</div>${answerBlock(d,k)}<p class="exp">${d.e}</p><p class="quote">${d.x}</p>`;
+  setTimeout(()=>{c.classList.add("flipped");if(good)c.classList.add("pop");
+    $("next").disabled=false;$("next").firstChild.textContent=idx===DATA.length-1?"See results":"Next";
+    $("hint").textContent="";},reduce?0:330);
+}
+$("next").onclick=()=>{
+  if($("next").disabled)return;
+  $("next").disabled=true;locked=false;$("hint").textContent="Choose an answer to turn the card over.";
+  if(idx===DATA.length-1){idx++;layout();setTimeout(showResults,reduce?0:550);return}
+  idx++;layout();$("next").firstChild.textContent="Next";
+};
+function showResults(){
+  $("quiz").style.display="none";$("barwrap").style.display="none";$("results").style.display="flex";
+  $("count").textContent="Results";
+  const score=picks.filter((p,i)=>p===DATA[i].a).length,n=DATA.length,pc=Math.round(score/n*100);
+  $("msg").textContent=pc===100?"Everything stuck. You're ready.":pc>=70?"Solid. A few points to tighten.":"Some gaps worth addressing before the exam.";
+  const arc=$("arc"),num=$("num"),pct=$("pct");const dur=reduce?1:1400,t0=performance.now();
+  (function step(t){const p=Math.min((t-t0)/dur,1),e=1-Math.pow(1-p,3);
+    arc.style.strokeDashoffset=339.3*(1-e*score/n);num.textContent=Math.round(e*score*10)/10<score&&p<1?Math.floor(e*score)+"/"+n:score+"/"+n;pct.textContent=Math.round(e*pc)+"%";
+    if(p<1)requestAnimationFrame(step)})(t0);
+  const wrong=DATA.map((d,i)=>({d,i})).filter(o=>picks[o.i]!==o.d.a);
+  $("rail").innerHTML=wrong.length?wrong.map(o=>`<article class="mcard"><h3 class="q">${o.d.q}</h3>${answerBlock(o.d,picks[o.i])}<p class="exp">${o.d.e}</p><p class="quote">${o.d.x}</p></article>`).join(""):`<article class="mcard"><h3 class="q">No mistakes to review.</h3><p class="exp">Every answer was correct.</p></article>`;
+  $("rail").scrollLeft=0;upd();
+}
+const rail=$("rail");
+function upd(){const n=Math.max(rail.children.length,1),i=Math.round(rail.scrollLeft/(rail.clientWidth+14));
+  $("pos").textContent=(Math.min(i,n-1)+1)+" / "+n;$("prev").disabled=i<=0;$("fwd").disabled=i>=n-1}
+rail.addEventListener("scroll",upd);
+$("prev").onclick=()=>rail.scrollBy({left:-(rail.clientWidth+14),behavior:"smooth"});
+$("fwd").onclick=()=>rail.scrollBy({left:rail.clientWidth+14,behavior:"smooth"});
+$("retake").onclick=()=>{$("results").style.display="none";$("quiz").style.display="flex";$("barwrap").style.display="block";$("next").disabled=true;$("next").firstChild.textContent="Next";build()};
+document.addEventListener("keydown",e=>{
+  if($("quiz").style.display==="none")return;
+  if(e.key>="1"&&e.key<="4"&&!locked&&idx<DATA.length)pick(idx,+e.key-1);
+  if(e.key==="Enter"&&!$("next").disabled)$("next").click();
+});
+build();
+</script>
+</body>
+</html>

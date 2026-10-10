@@ -5,16 +5,23 @@ interface Props {
 
 export default function ProgressBar({ current, total }: Props) {
   const percent = Math.round((current / total) * 100);
-
   return (
-    <div className="w-full flex flex-col gap-2">
-      <span className="text-sm font-medium text-[#555]">
+    <div className="flex flex-col gap-2" style={{ width: 'min(88vw, 400px)' }}>
+      <span className="text-sm font-medium" style={{ color: 'var(--mute)' }}>
         Question {current} of {total}
       </span>
-      <div className="w-full h-1 bg-[#E8E8E8] rounded-full overflow-hidden">
+      <div
+        className="w-full overflow-hidden"
+        style={{ height: 3, background: 'var(--line)', borderRadius: 3 }}
+      >
         <div
-          className="h-full bg-slate-800 rounded-full transition-all duration-300"
-          style={{ width: `${percent}%` }}
+          style={{
+            height: '100%',
+            width: `${percent}%`,
+            background: 'var(--accent)',
+            borderRadius: 3,
+            transition: 'width .5s cubic-bezier(.2,.8,.2,1)',
+          }}
         />
       </div>
     </div>

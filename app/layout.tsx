@@ -7,13 +7,13 @@ const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
   title: 'Recall',
-  description: 'Turn your notes into a quiz, instantly.',
+  description: 'Drop your course. Get tested on it.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} font-sans antialiased bg-[#FAFAFA] text-[#111]`}>
+    <html lang="en" style={{ colorScheme: 'light' }}>
+      <body className={`${inter.variable}`}>
         <QuizProvider>{children}</QuizProvider>
       </body>
     </html>

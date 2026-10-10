@@ -3,7 +3,8 @@ import type { Quiz } from './schemas';
 /**
  * A hardcoded sample quiz used when USE_FALLBACK=true.
  * Topic: The history of the internet.
- * All excerpts are verbatim from the sourceText below.
+ * All excerpts are verbatim from the sourceText below, ≤25 words.
+ * All explanations are ≤2 sentences.
  *
  * This runs through Zod validation on every call — it's not exempt.
  */
@@ -22,7 +23,7 @@ export const FALLBACK_QUIZ: Quiz = {
       question: 'What was the name of the early network that preceded the modern internet?',
       options: ['DARPANET', 'ARPANET', 'MILNET', 'USENET'],
       correctIndex: 1,
-      explanation: 'ARPANET, funded by the US Department of Defense in the late 1960s, was the direct predecessor of the modern internet and was designed to allow multiple computers to communicate on a single network.',
+      explanation: 'ARPANET was funded by the US Department of Defense in the late 1960s. It was designed to allow multiple computers to communicate on a single network.',
       excerpt: 'The internet has its origins in ARPANET, a project funded by the United States Department of Defense in the late 1960s.',
     },
     {
@@ -34,7 +35,7 @@ export const FALLBACK_QUIZ: Quiz = {
         'It established the first TCP/IP connection',
       ],
       correctIndex: 2,
-      explanation: 'The first message was intended to be "login" but the system crashed after only "lo" was sent, making it an unintentionally shortened first transmission.',
+      explanation: 'The first message was meant to be "login" but the system crashed after only "lo" was sent. This made it an unintentionally shortened first transmission.',
       excerpt: 'The first message ever sent over ARPANET was "lo" — the system crashed before the full word "login" could be transmitted.',
     },
     {
@@ -46,14 +47,14 @@ export const FALLBACK_QUIZ: Quiz = {
         'The release of Mosaic in 1993',
       ],
       correctIndex: 2,
-      explanation: 'When ARPANET adopted TCP/IP in 1983, it established the communication protocols that still underlie the modern internet, and this moment is widely considered the birth of the internet.',
-      excerpt: 'In 1983, ARPANET adopted TCP/IP, the set of communication protocols that still underlies the modern internet. This moment is often referred to as the birth of the internet.',
+      explanation: 'Adopting TCP/IP in 1983 set the communication protocols that still underlie the modern internet. This moment is widely considered the birth of the internet.',
+      excerpt: 'In 1983, ARPANET adopted TCP/IP, the set of communication protocols that still underlies the modern internet.',
     },
     {
       question: 'Who invented the World Wide Web?',
       options: ['Bill Gates', 'Vint Cerf', 'Tim Berners-Lee', 'Marc Andreessen'],
       correctIndex: 2,
-      explanation: 'Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN, proposing a system of hypertext documents accessible via the internet.',
+      explanation: 'Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN. He proposed a system of hypertext documents accessible via the internet.',
       excerpt: 'Tim Berners-Lee invented the World Wide Web in 1989 while working at CERN.',
     },
     {
@@ -65,7 +66,7 @@ export const FALLBACK_QUIZ: Quiz = {
         'It gave the US government control over the web',
       ],
       correctIndex: 1,
-      explanation: 'By making web technology freely available rather than patenting it, Berners-Lee removed barriers to adoption, which was a key factor in the web\'s rapid global spread.',
+      explanation: 'By not patenting the web, Berners-Lee removed barriers to adoption. This was a key factor in its rapid global spread.',
       excerpt: 'Berners-Lee made the web technology freely available, which was a key decision in enabling its rapid worldwide adoption.',
     },
   ],
