@@ -40,15 +40,26 @@ export async function POST(req: NextRequest) {
     }
 
     // --- Real AI path ---
+    // Truncate to ~3000 words — enough for 15 strong questions, keeps Gemini fast.
+    const MAX_WORDS = 3000;
+    const words = text.trim().split(/\s+/);
+    const truncatedText = words.length > MAX_WORDS
+      ? words.slice(0, MAX_WORDS).join(' ')
+      : text;
+
+    console.log(`[generate-quiz] text=${words.length} words, sending ${truncatedText.split(/\s+/).length} words to Gemini`);
+
     // 1. Call Gemini
     let rawData: unknown;
     try {
+      const t0 = Date.now();
       rawData = await Promise.race([
-        generateQuizFromGemini(text, count),
+        generateQuizFromGemini(truncatedText, count),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Request timed out')), 30000)
+          setTimeout(() => reject(new Error('Request timed out')), 120000)
         ),
       ]);
+      console.log(`[generate-quiz] Gemini responded in ${Date.now() - t0}ms`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       console.error('[generate-quiz] Gemini call failed:', message);
@@ -68,10 +79,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Domain validation — check the truth (excerpts must appear in the source text)
+    // 3. Domain validation — excerpts must appear in the truncated source text
     const { verified, dropped, sufficient } = verifyExcerpts(
       parsed.data.questions,
-      text,
+      truncatedText,
       count
     );
 

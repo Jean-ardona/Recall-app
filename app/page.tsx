@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Upload, FileText, BookOpen, Loader2, X, AlertCircle } from 'lucide-react';
 import { useQuiz } from '@/context/QuizContext';
 import QuestionCountSelector from '@/components/QuestionCountSelector';
+import GeneratingOverlay from '@/components/GeneratingOverlay';
 import { countWords, getDefaultCount, type QuestionCount } from '@/lib/schemas';
 import type { Question } from '@/lib/schemas';
 
 // ── File validation limits ────────────────────────────────────────
 const MAX_MB   = 5;
-const MAX_PAGES = 50;
+const MAX_PAGES = 150;
 const MAX_BYTES = MAX_MB * 1024 * 1024;
 
 type FileState =
@@ -155,6 +156,8 @@ export default function HomePage() {
         background: 'var(--bg)',
       }}
     >
+      {/* Generating overlay — shown while waiting for Gemini */}
+      {generating && <GeneratingOverlay count={questionCount} />}
       {/* Brand */}
       <header style={{ width: 'min(88vw, 400px)', marginBottom: 28 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 700, fontSize: 19, letterSpacing: '-.01em', color: 'var(--ink)' }}>
@@ -237,7 +240,7 @@ export default function HomePage() {
                 or click to browse
               </p>
               <p style={{ fontSize: 12, color: 'var(--mute)', margin: '4px 0 0' }}>
-                PDF (text-based, max {MAX_PAGES} pages) or .txt · max {MAX_MB} MB
+                PDF (text-based, max 150 pages) or .txt · max {MAX_MB} MB
               </p>
             </div>
           )}
@@ -381,10 +384,7 @@ export default function HomePage() {
           disabled={!canGenerate}
           className="btn-primary"
         >
-          {generating
-            ? <><Loader2 size={16} className="animate-spin" />Generating quiz…</>
-            : 'Generate quiz'
-          }
+          Generate quiz
         </button>
 
         {!canGenerate && !generating && wordCount > 0 && wordCount < 150 && (
